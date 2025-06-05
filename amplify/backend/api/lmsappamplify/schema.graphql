@@ -101,7 +101,7 @@ type User @model @auth(rules: [{allow: public}]) {
   createdCourses: [Course] @hasMany(indexName: "byUser", fields: ["id"])
 }
 
-type CourseUser @model(queries: null) @auth(rules: [{allow: public}, {allow: public}]) {
+type CourseUser @model(queries: null) @auth(rules: [{allow: public}]) {
   id: ID!
   courseID: ID! @index(name: "byCourse", sortKeyFields: ["userID"])
   userID: ID! @index(name: "byUser", sortKeyFields: ["courseID"])
