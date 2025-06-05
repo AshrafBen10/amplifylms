@@ -1,20 +1,22 @@
-type AssignmentModel @model @auth(rules: [{allow: public}]) @key(name: "byCourse", fields: ["courseID"]) {
+type AssignmentModel @model @auth(rules: [{allow: public}]) {
   id: ID!
   title: String
   content: String
   S3Key: String
-  courseID: ID
+  courseID: ID! @index(name: "byCourse")
   uploadedBy: String
   uploadedAt: String
+  course: Course @belongsTo(fields: ["courseID"])
 }
 
-type SyllabusModel @model @auth(rules: [{allow: public}]) @key(name: "byCourse", fields: ["courseID"]) {
+type SyllabusModel @model @auth(rules: [{allow: public}]) {
   id: ID!
   title: String
   S3Key: String
-  courseID: ID
+  courseID: ID! @index(name: "byCourse")
   uploadedBy: String
   uploadedAt: String
+  course: Course @belongsTo(fields: ["courseID"])
 }
 
 enum CourseStatus {
@@ -22,41 +24,45 @@ enum CourseStatus {
   DRAFT
 }
 
-type CommentModel @model @auth(rules: [{allow: public}]) @key(name: "byPostModel", fields: ["postmodelID"]) {
+type CommentModel @model @auth(rules: [{allow: public}]) {
   id: ID!
   comment: String
   createdBy: String
   createdAt: String
-  postmodelID: ID
-  User: User @connection
+  postmodelID: ID! @index(name: "byPostModel")
+  User: User @belongsTo
+  post: PostModel @belongsTo(fields: ["postmodelID"])
 }
 
-type PostModel @model @auth(rules: [{allow: public}]) @key(name: "byCourse", fields: ["courseID"]) {
+type PostModel @model @auth(rules: [{allow: public}]) {
   id: ID!
   content: String
   createdBy: String
   createdAt: String
-  CommentModels: [CommentModel] @connection(keyName: "byPostModel", fields: ["id"])
-  courseID: ID
-  User: User @connection
+  CommentModels: [CommentModel] @hasMany(indexName: "byPostModel", fields: ["id"])
+  courseID: ID! @index(name: "byCourse")
+  User: User @belongsTo
+  course: Course @belongsTo(fields: ["courseID"])
 }
 
-type AnnouncementsModel @model @auth(rules: [{allow: public}]) @key(name: "byCourse", fields: ["courseID"]) {
+type AnnouncementsModel @model @auth(rules: [{allow: public}]) {
   id: ID!
   title: String
   content: String
   createdAt: String
-  courseID: ID
-  User: User @connection
+  courseID: ID! @index(name: "byCourse")
+  User: User @belongsTo
+  course: Course @belongsTo(fields: ["courseID"])
 }
 
-type Lesson @model @auth(rules: [{allow: public}]) @key(name: "byCourse", fields: ["courseID"]) {
+type Lesson @model @auth(rules: [{allow: public}]) {
   id: ID!
   title: String
   summary: String
   videoURL: String
-  courseID: ID
+  courseID: ID! @index(name: "byCourse")
   createdBy: String
+  course: Course @belongsTo(fields: ["courseID"])
 }
 
 type Course @model @auth(rules: [{allow: public}]) {
@@ -65,16 +71,16 @@ type Course @model @auth(rules: [{allow: public}]) {
   desc: String
   introduction: String
   createdBy: String
-  Lessons: [Lesson] @connection(keyName: "byCourse", fields: ["id"])
-  AnnouncementsModels: [AnnouncementsModel] @connection(keyName: "byCourse", fields: ["id"])
+  Lessons: [Lesson] @hasMany(indexName: "byCourse", fields: ["id"])
+  AnnouncementsModels: [AnnouncementsModel] @hasMany(indexName: "byCourse", fields: ["id"])
   createdAt: String
-  User: User @connection
+  User: User @belongsTo
   status: CourseStatus
-  PostModels: [PostModel] @connection(keyName: "byCourse", fields: ["id"])
-  SyllabusModels: [SyllabusModel] @connection(keyName: "byCourse", fields: ["id"])
-  AssignmentModels: [AssignmentModel] @connection(keyName: "byCourse", fields: ["id"])
+  PostModels: [PostModel] @hasMany(indexName: "byCourse", fields: ["id"])
+  SyllabusModels: [SyllabusModel] @hasMany(indexName: "byCourse", fields: ["id"])
+  AssignmentModels: [AssignmentModel] @hasMany(indexName: "byCourse", fields: ["id"])
   enrolledStudents: [String]
-  CourseUsers: [CourseUser] @connection(keyName: "byCourse", fields: ["id"])
+  CourseUsers: [CourseUser] @hasMany(indexName: "byCourse", fields: ["id"])
   coursePin: String
 }
 
@@ -84,14 +90,13 @@ type User @model @auth(rules: [{allow: public}]) {
   email: String
   username: String
   isEducator: Boolean
-  courses: [CourseUser] @connection(keyName: "byUser", fields: ["id"])
+  courses: [CourseUser] @hasMany(indexName: "byUser", fields: ["id"])
 }
 
-type CourseUser @model(queries: null) @key(name: "byCourse", fields: ["courseID", "userID"]) @key(name: "byUser", fields: ["userID", "courseID"]) @auth(rules: [{allow: public}, {allow: public}]) {
+type CourseUser @model(queries: null) @auth(rules: [{allow: public}, {allow: public}]) {
   id: ID!
-  courseID: ID!
-  userID: ID!
-  course: Course! @connection(fields: ["courseID"])
-  user: User! @connection(fields: ["userID"])
+  courseID: ID! @index(name: "byCourse", sortKeyFields: ["userID"])
+  userID: ID! @index(name: "byUser", sortKeyFields: ["courseID"])
+  course: Course! @belongsTo(fields: ["courseID"])
+  user: User! @belongsTo(fields: ["userID"])
 }
- 
