@@ -30,7 +30,8 @@ type CommentModel @model @auth(rules: [{allow: public}]) {
   createdBy: String
   createdAt: String
   postmodelID: ID! @index(name: "byPostModel")
-  User: User @belongsTo
+  userID: ID! @index(name: "byUser")
+  user: User @belongsTo(fields: ["userID"])
   post: PostModel @belongsTo(fields: ["postmodelID"])
 }
 
@@ -41,7 +42,8 @@ type PostModel @model @auth(rules: [{allow: public}]) {
   createdAt: String
   CommentModels: [CommentModel] @hasMany(indexName: "byPostModel", fields: ["id"])
   courseID: ID! @index(name: "byCourse")
-  User: User @belongsTo
+  userID: ID! @index(name: "byUser")
+  user: User @belongsTo(fields: ["userID"])
   course: Course @belongsTo(fields: ["courseID"])
 }
 
@@ -51,7 +53,8 @@ type AnnouncementsModel @model @auth(rules: [{allow: public}]) {
   content: String
   createdAt: String
   courseID: ID! @index(name: "byCourse")
-  User: User @belongsTo
+  userID: ID! @index(name: "byUser")
+  user: User @belongsTo(fields: ["userID"])
   course: Course @belongsTo(fields: ["courseID"])
 }
 
@@ -74,7 +77,8 @@ type Course @model @auth(rules: [{allow: public}]) {
   Lessons: [Lesson] @hasMany(indexName: "byCourse", fields: ["id"])
   AnnouncementsModels: [AnnouncementsModel] @hasMany(indexName: "byCourse", fields: ["id"])
   createdAt: String
-  User: User @belongsTo
+  userID: ID! @index(name: "byUser")
+  user: User @belongsTo(fields: ["userID"])
   status: CourseStatus
   PostModels: [PostModel] @hasMany(indexName: "byCourse", fields: ["id"])
   SyllabusModels: [SyllabusModel] @hasMany(indexName: "byCourse", fields: ["id"])
@@ -91,6 +95,10 @@ type User @model @auth(rules: [{allow: public}]) {
   username: String
   isEducator: Boolean
   courses: [CourseUser] @hasMany(indexName: "byUser", fields: ["id"])
+  comments: [CommentModel] @hasMany(indexName: "byUser", fields: ["id"])
+  posts: [PostModel] @hasMany(indexName: "byUser", fields: ["id"])
+  announcements: [AnnouncementsModel] @hasMany(indexName: "byUser", fields: ["id"])
+  createdCourses: [Course] @hasMany(indexName: "byUser", fields: ["id"])
 }
 
 type CourseUser @model(queries: null) @auth(rules: [{allow: public}, {allow: public}]) {
